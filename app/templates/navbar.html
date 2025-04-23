@@ -1,0 +1,334 @@
+<nav class="bg-white w-3/4 mx-auto flex items-center justify-between p-4">
+    <div class="container flex items-center justify-between p-4 mx-auto">
+        <!-- Logo -->
+        <a
+            href="/"
+            class="flex items-center text-2xl font-semibold text-black transition duration-300 hover:text-gray-300"
+        >
+            <!-- Icon for Logo -->
+            <img
+                src="{{ url_for('images', path='/logo.png') }}"
+                alt="Logo"
+                class="w-6 h-6 mr-2"
+            />
+            <span>SENSE</span>
+        </a>
+
+        <!-- Tombol Hamburger untuk Mobile -->
+        <button
+            id="hamburger-button"
+            class="flex flex-col space-y-1.5 lg:hidden focus:outline-none group"
+        >
+            <span
+                class="block w-6 h-0.5 bg-black transition-colors duration-300 group-hover:bg-gray-400"
+            ></span>
+            <span
+                class="block w-6 h-0.5 bg-black transition-colors duration-300 group-hover:bg-gray-400"
+            ></span>
+            <span
+                class="block w-6 h-0.5 bg-black transition-colors duration-300 group-hover:bg-gray-400"
+            ></span>
+        </button>
+
+        <!-- Menu Navigasi untuk Desktop -->
+        <ul class="hidden lg:flex lg:space-x-6">
+            <li>
+                <a
+                    href="/openweather"
+                    class="flex items-center text-black transition duration-300 hover:text-gray-300"
+                >
+                    <!-- Ikon untuk Weather -->
+                    <svg
+                        class="w-5 h-5 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                        ></path>
+                    </svg>
+                    Outdoor Weather
+                </a>
+            </li>
+            <li>
+                <a
+                    href="/pzem"
+                    class="flex items-center text-black transition duration-300 hover:text-gray-300"
+                >
+                    <!-- Ikon untuk PZEM -->
+                    <svg
+                        class="w-5 h-5 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                        ></path>
+                    </svg>
+                    Energy
+                </a>
+            </li>
+            <li>
+                <a
+                    href="/aht10"
+                    class="flex items-center text-black transition duration-300 hover:text-gray-300"
+                >
+                    <!-- Ikon untuk AHT10 (Termometer) -->
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        fill="currentColor"
+                        class="mr-2 bi bi-thermometer-low"
+                        viewBox="0 0 16 16"
+                    >
+                        <path
+                            d="M9.5 12.5a1.5 1.5 0 1 1-2-1.415V9.5a.5.5 0 0 1 1 0v1.585a1.5 1.5 0 0 1 1 1.415"
+                        />
+                        <path
+                            d="M5.5 2.5a2.5 2.5 0 0 1 5 0v7.55a3.5 3.5 0 1 1-5 0zM8 1a1.5 1.5 0 0 0-1.5 1.5v7.987l-.167.15a2.5 2.5 0 1 0 3.333 0l-.166-.15V2.5A1.5 1.5 0 0 0 8 1"
+                        />
+                    </svg>
+                    Indoor Temperature
+                </a>
+            </li>
+            <li>
+                <a
+                    href="/camera"
+                    class="flex items-center text-black transition duration-300 hover:text-gray-300"
+                >
+                    <!-- Ikon untuk Camera -->
+                    <svg
+                        class="w-5 h-5 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                        ></path>
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                        ></path>
+                    </svg>
+                    Occupancy
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Menu Navigasi untuk Mobile -->
+    <div
+        id="mobile-menu"
+        class="fixed inset-0 z-40 transition-transform duration-300 transform translate-x-full bg-blue-600 bg-opacity-95 lg:hidden"
+    >
+        <div class="container p-4 mx-auto">
+            <!-- Tombol Close (X) untuk Menutup Menu -->
+            <button
+                id="close-button"
+                class="absolute text-black top-4 right-4 focus:outline-none"
+            >
+                <svg
+                    class="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"
+                    ></path>
+                </svg>
+            </button>
+
+            <ul class="flex flex-col items-center mt-16 space-y-8 font-bold">
+                <!-- Tombol Home -->
+                <li>
+                    <a
+                        href="/"
+                        class="flex items-center text-xl text-black transition duration-300 hover:text-gray-300"
+                    >
+                        <svg
+                            class="w-6 h-6 mr-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                            ></path>
+                        </svg>
+                        Home
+                    </a>
+                </li>
+                <li>
+                    <a
+                        href="/openweather"
+                        class="flex items-center text-xl text-black transition duration-300 hover:text-gray-300"
+                    >
+                        <svg
+                            class="w-6 h-6 mr-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                            ></path>
+                        </svg>
+                        Outdoor Weather
+                    </a>
+                </li>
+                <li>
+                    <a
+                        href="/pzem"
+                        class="flex items-center text-xl text-black transition duration-300 hover:text-gray-300"
+                    >
+                        <svg
+                            class="w-6 h-6 mr-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z"
+                            ></path>
+                        </svg>
+                        Energy
+                    </a>
+                </li>
+                <li>
+                    <a
+                        href="/aht10"
+                        class="flex items-center text-xl text-black transition duration-300 hover:text-gray-300"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            fill="currentColor"
+                            class="mr-2 bi bi-thermometer-low"
+                            viewBox="0 0 16 16"
+                        >
+                            <path
+                                d="M9.5 12.5a1.5 1.5 0 1 1-2-1.415V9.5a.5.5 0 0 1 1 0v1.585a1.5 1.5 0 0 1 1 1.415"
+                            />
+                            <path
+                                d="M5.5 2.5a2.5 2.5 0 0 1 5 0v7.55a3.5 3.5 0 1 1-5 0zM8 1a1.5 1.5 0 0 0-1.5 1.5v7.987l-.167.15a2.5 2.5 0 1 0 3.333 0l-.166-.15V2.5A1.5 1.5 0 0 0 8 1"
+                            />
+                        </svg>
+                        Indoor Temperature
+                    </a>
+                </li>
+                <li>
+                    <a
+                        href="/camera"
+                        class="flex items-center text-xl text-black transition duration-300 hover:text-gray-300"
+                    >
+                        <svg
+                            class="w-6 h-6 mr-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                            ></path>
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                            ></path>
+                        </svg>
+                        Occupancy
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- JavaScript untuk toggle menu dan menutup saat klik di luar -->
+<script>
+    const hamburgerButton = document.getElementById("hamburger-button");
+    const mobileMenu = document.getElementById("mobile-menu");
+    const closeButton = document.getElementById("close-button");
+
+    // Toggle menu saat tombol hamburger diklik
+    hamburgerButton.addEventListener("click", () => {
+        hamburgerButton.classList.toggle("active");
+        mobileMenu.classList.toggle("translate-x-full");
+
+        const spans = hamburgerButton.querySelectorAll("span");
+        spans[0].classList.toggle("rotate-45");
+        spans[0].classList.toggle("translate-y-2");
+        spans[1].classList.toggle("opacity-0");
+        spans[2].classList.toggle("-rotate-45");
+        spans[2].classList.toggle("-translate-y-2");
+    });
+
+    // Menutup menu saat tombol close (X) diklik
+    closeButton.addEventListener("click", () => {
+        hamburgerButton.classList.remove("active");
+        mobileMenu.classList.add("translate-x-full");
+
+        const spans = hamburgerButton.querySelectorAll("span");
+        spans[0].classList.remove("rotate-45", "translate-y-2");
+        spans[1].classList.remove("opacity-0");
+        spans[2].classList.remove("-rotate-45", "-translate-y-2");
+    });
+
+    // Menutup menu saat klik di luar navbar atau saat menu diklik
+    document.addEventListener("click", (event) => {
+        const isClickInsideNav = event.target.closest("nav");
+        const isClickOnHamburger = event.target.closest("#hamburger-button");
+        const isClickOnMobileMenu = event.target.closest("#mobile-menu a");
+
+        if (!isClickInsideNav || isClickOnMobileMenu) {
+            hamburgerButton.classList.remove("active");
+            mobileMenu.classList.add("translate-x-full");
+
+            const spans = hamburgerButton.querySelectorAll("span");
+            spans[0].classList.remove("rotate-45", "translate-y-2");
+            spans[1].classList.remove("opacity-0");
+            spans[2].classList.remove("-rotate-45", "-translate-y-2");
+        }
+    });
+</script>

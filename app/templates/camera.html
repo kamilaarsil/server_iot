@@ -1,0 +1,306 @@
+{% include 'layout.html' %}
+
+<div class="container p-4 mx-auto mt-12">
+    <h1 class="mb-6 text-3xl font-bold text-left px-6 text-gray-800">Camera Monitoring</h1>
+
+    <!-- Real-time Preview Section -->
+    <div class="grid grid-cols-1 gap-6 mb-8 lg:grid-cols-2">
+        <div class="p-4 bg-white rounded-lg shadow-lg">
+            <h2 class="mb-4 text-xl font-semibold">Live Camera Feed</h2>
+            <div class="aspect-w-16 aspect-h-9">
+                <img
+                    id="videoStream"
+                    src="/camera/stream"
+                    class="rounded-lg"
+                    alt="Live feed"
+                />
+            </div>
+        </div>
+
+        <!-- Latest Results Card -->
+        <div class="flex flex-col p-4 bg-white rounded-lg shadow-lg">
+            <h2 class="mb-4 text-xl font-semibold">Latest Detection</h2>
+            <div
+                class="flex flex-col items-center justify-center space-y-4 lg:space-y-0 lg:space-x-4 lg:flex-row"
+            >
+                <div>
+                    <h3 class="mb-2 font-medium">Input Frame</h3>
+                    <img
+                        id="inputImage"
+                        class="rounded-lg shadow-md"
+                        alt="Input frame"
+                    />
+                </div>
+                <div>
+                    <h3 class="mb-2 font-medium">Processed Frame</h3>
+                    <img
+                        id="outputImage"
+                        class="rounded-lg shadow-md"
+                        alt="Output frame"
+                    />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Visualization Section -->
+    <div class="p-4 bg-white rounded-lg shadow-lg">
+        <h2 class="mb-4 text-xl font-semibold">Occupancy History</h2>
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div class="min-h-[400px]">
+                <canvas id="occupancyChart"></canvas>
+            </div>
+            <div class="overflow-x-auto">
+                <table
+                    class="w-full table-auto"
+                >
+                    <thead
+                        class="text-white bg-gradient-to-r from-blue-500 to-blue-700"
+                    >
+                        <tr>
+                            <th class="px-6 py-3 text-center">ID</th>
+                            <th class="px-6 py-3 text-center">Timestamp</th>
+                            <th class="px-6 py-3 text-center">Occupants</th>
+                            <th class="px-6 py-3 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody
+                        id="occupancyTable"
+                        class="bg-white divide-y divide-gray-200"
+                    ></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="flex justify-center mt-6 space-x-4">
+        <button
+            id="prev-page"
+            class="px-6 py-3 transition duration-300 bg-gray-300 rounded-lg shadow-md hover:bg-gray-400"
+        >
+            Previous
+        </button>
+        <span
+            id="page-info"
+            class="px-4 py-3 text-lg font-medium text-gray-700"
+        ></span>
+        <button
+            id="next-page"
+            class="px-6 py-3 transition duration-300 bg-gray-300 rounded-lg shadow-md hover:bg-gray-400"
+        >
+            Next
+        </button>
+    </div>
+</div>
+
+<script>
+    let currentPage = 1;
+    let totalPages = 1;
+    let occupancyChartInstance = null;
+
+    // Function to update the latest images
+    function updateImages() {
+        fetch("/camera/latest_images")
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.input) {
+                    document.getElementById("inputImage").src =
+                        data.input + "?t=" + new Date().getTime();
+                }
+                if (data.output) {
+                    document.getElementById("outputImage").src =
+                        data.output + "?t=" + new Date().getTime();
+                }
+            })
+            .catch((error) => {
+                console.error("Failed to fetch latest images:", error);
+            });
+    }
+
+    // Function to fetch paginated data
+    function fetchData(page) {
+        fetch(`/camera/data_occupancy?page=${page}`)
+            .then((response) => response.json())
+            .then((data) => {
+                totalPages = data.total_pages;
+                let timestamps = [],
+                    occupants = [];
+
+                // Update the table
+                const tbody = document.getElementById("occupancyTable");
+                tbody.innerHTML = data.data
+                    .map(
+                        (record) => `
+                        <tr class="transition duration-300 hover:bg-gray-100 text-center">
+                            <td class="px-3 py-2">${record.id}</td>
+                            <td class="px-3 py-2">${record.timestamp}</td>
+                            <td class="px-3 py-2">${record.occupant}</td>
+                            <td class="flex flex-col items-center justify-center py-2 space-y-2 lg:flex-row lg:space-x-2 lg:space-y-0">
+                                <button onclick="editData(${record.id})" class="px-2 py-1 text-sm text-white bg-yellow-500 rounded-lg cursor-pointer transition-transform duration-300 hover:scale-105">Edit</button>
+                                <button onclick="deleteData(${record.id})" class="px-2 py-1 text-sm text-white bg-red-500 rounded-lg cursor-pointer transition-transform duration-300 hover:scale-105">Delete</button>
+                            </td>
+                        </tr>`
+                    )
+                    .join("");
+
+                // Update pagination info
+                document.getElementById(
+                    "page-info"
+                ).textContent = `Page ${data.page} of ${data.total_pages}`;
+
+                // Prepare data for the chart
+                timestamps = data.data.map((item) => item.timestamp);
+                occupants = data.data.map((item) => item.occupant);
+
+                // Reverse data to show latest on the right
+                timestamps.reverse();
+                occupants.reverse();
+
+                // Update the chart
+                updateChart(timestamps, occupants);
+            })
+            .catch((error) => {
+                console.error("Failed to fetch data:", error);
+            });
+    }
+
+    function updateChart(timestamps, occupants) {
+        const ctx = document.getElementById("occupancyChart").getContext("2d");
+
+        if (!occupancyChartInstance) {
+            // Initialize the chart if it doesn't exist
+            occupancyChartInstance = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: timestamps,
+                    datasets: [
+                        {
+                            label: "Number of Occupants",
+                            data: occupants,
+                            borderColor: "rgb(59, 130, 246)",
+                            backgroundColor: "rgba(59, 130, 246, 0.2)",
+                            tension: 0.1,
+                            fill: true,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: "top",
+                        },
+                        tooltip: {
+                            enabled: true,
+                            mode: "index",
+                            intersect: false,
+                        },
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: "Timestamp",
+                                font: {
+                                    size: 12,
+                                },
+                            },
+                            ticks: {
+                                autoSkip: true,
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: {
+                                    size: 10,
+                                },
+                            },
+                            grid: {
+                                display: true,
+                                color: "rgba(200, 200, 200, 0.2)",
+                            },
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: "Number of Occupants",
+                            },
+                            beginAtZero: true,
+                            suggestedMax: 10, // Set the max value of y axis
+                        },
+                    },
+                },
+            });
+        } else {
+            // Update the chart data
+            occupancyChartInstance.data.labels = timestamps;
+            occupancyChartInstance.data.datasets[0].data = occupants;
+            occupancyChartInstance.update();
+        }
+    }
+
+    // Function to edit data
+    function editData(id) {
+        const newOccupant = prompt("Enter new occupant count for id = " + id);
+        if (newOccupant) {
+            fetch(`/camera/update/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ occupant: parseInt(newOccupant) }),
+            })
+                .then(() => fetchData(currentPage)) // Refresh data after editing
+                .catch((error) => {
+                    console.error("Failed to edit data:", error);
+                });
+        }
+    }
+
+    // Function to delete data
+    function deleteData(id) {
+        if (confirm("Are you sure you want to delete id = " + id + "?")) {
+            fetch(`/camera/delete/${id}`, {
+                method: "DELETE",
+            })
+                .then(() => fetchData(currentPage)) // Refresh data after deleting
+                .catch((error) => {
+                    console.error("Failed to delete data:", error);
+                });
+        }
+    }
+
+    // Initial load
+    document.addEventListener("DOMContentLoaded", function () {
+        fetchData(currentPage); // Fetch initial data
+        updateImages(); // Fetch initial images
+
+        // Refresh data and images every 10 seconds
+        setInterval(() => {
+            fetchData(currentPage);
+            updateImages();
+        }, 10000);
+
+        // Pagination controls
+        document
+            .getElementById("prev-page")
+            .addEventListener("click", function () {
+                if (currentPage > 1) {
+                    currentPage--;
+                    fetchData(currentPage);
+                }
+            });
+
+        document
+            .getElementById("next-page")
+            .addEventListener("click", function () {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    fetchData(currentPage);
+                }
+            });
+    });
+</script>

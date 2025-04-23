@@ -1,0 +1,285 @@
+{% include 'layout.html' %}
+
+<div
+    class="container p-6 mx-auto mt-4 mb-6 bg-white rounded-lg shadow-lg max-w-8xl"
+>
+    <h1 class="mb-2 text-4xl font-bold text-left px-6 text-gray-800">
+        Outdoor Weather Data
+    </h1>
+
+    <!-- Table Container -->
+    <div class="p-6 bg-gray-100 min-h-screen flex justify-center items-center">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-4xl">
+            <!-- Header Section -->
+            <div class="flex justify-between items-center pb-4 border-b">
+                <h2 class="text-2xl font-semibold text-gray-800">Data Details</h2>
+            </div>
+
+            <!-- Table Section -->
+            <div class="overflow-x-auto mt-4">
+                <table class="w-full table-auto">
+                    <thead>
+                        <tr class="text-white bg-gradient-to-r from-blue-500 to-blue-700">
+                            <th class="px-6 py-3 text-center font-medium">ID</th>
+                            <th class="px-6 py-3 text-center font-medium">Timestamp</th>
+                            <th class="px-6 py-3 text-center font-medium">Temperature (°C)</th>
+                            <th class="px-6 py-3 text-center font-medium">Feels Like (°C)</th>
+                            <th class="px-6 py-3 text-center font-medium">Humidity (%)</th>
+                            <th class="px-6 py-3 text-center font-medium">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody
+                        id="data-table-body"
+                        class="divide-y divide-gray-200 text-center">
+                            <tr class="bg-white hover:bg-gray-50 shadow-md rounded-lg overflow-hidden">
+                            </tr>
+                    </tbody>        
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="container p-4 mx-auto mt-12">
+        <h2 class="mb-4 text-3xl font-bold text-center">
+            OpenWeather Data Charts
+        </h2>
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            <!-- Temperature Chart -->
+            <div>
+                <h3 class="mb-4 text-2xl font-bold text-center">
+                    Temperature Chart
+                </h3>
+                <div class="min-h-[400px]">
+                    <canvas id="temperatureChart"></canvas>
+                </div>
+            </div>
+            <!-- Feels Like Chart -->
+            <div>
+                <h3 class="mb-4 text-2xl font-bold text-center">
+                    Feels Like Chart
+                </h3>
+                <div class="min-h-[400px]">
+                    <canvas id="feelsLikeChart"></canvas>
+                </div>
+            </div>
+            <!-- Humidity Chart -->
+            <div>
+                <h3 class="mb-4 text-2xl font-bold text-center">
+                    Humidity Chart
+                </h3>
+                <div class="min-h-[400px]">
+                    <canvas id="humidityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex justify-center mt-6 space-x-4">
+        <button
+            id="prev-page"
+            class="px-6 py-3 text-sm transition duration-300 bg-gray-300 rounded-lg shadow-md lg:text-lg hover:bg-gray-400"
+        >
+            Previous
+        </button>
+        <span
+            id="page-info"
+            class="px-4 py-3 text-sm font-medium text-gray-700"
+        ></span>
+        <button
+            id="next-page"
+            class="px-6 py-3 text-sm transition duration-300 bg-gray-300 rounded-lg shadow-md lg:text-lg hover:bg-gray-400"
+        >
+            Next
+        </button>
+    </div>
+</div>
+
+<script>
+    let currentPage = 1;
+    let totalPages = 1;
+    let temperatureChartInstance = null;
+    let feelsLikeChartInstance = null;
+    let humidityChartInstance = null;
+
+    $(document).ready(function () {
+        // Initialize charts with empty data
+        temperatureChartInstance = createChart(
+            "temperatureChart",
+            "Temperature (°C)",
+            [],
+            "rgba(255, 99, 132, 1)"
+        );
+        feelsLikeChartInstance = createChart(
+            "feelsLikeChart",
+            "Feels Like (°C)",
+            [],
+            "rgba(54, 162, 235, 1)"
+        );
+        humidityChartInstance = createChart(
+            "humidityChart",
+            "Humidity (%)",
+            [],
+            "rgba(75, 192, 192, 1)"
+        );
+
+        // Fetch data and update charts immediately
+        fetchData(currentPage);
+
+        // Update data and charts every 10 seconds
+        setInterval(() => {
+            fetchData(currentPage);
+        }, 10000);
+
+        $("#prev-page").click(function () {
+            if (currentPage > 1) {
+                currentPage--;
+                fetchData(currentPage);
+            }
+        });
+
+        $("#next-page").click(function () {
+            if (currentPage < totalPages) {
+                currentPage++;
+                fetchData(currentPage);
+            }
+        });
+    });
+
+    function fetchData(page) {
+        $.getJSON(`/openweather/data_openweather?page=${page}`)
+            .done(function (response) {
+                totalPages = response.total_pages;
+                let timestamps = [],
+                    temperatures = [],
+                    feelsLikes = [],
+                    humidities = [];
+
+                let newContent = response.data
+                    .map((data) => {
+                        timestamps.push(data.timestamp);
+                        temperatures.push(data.temperature);
+                        feelsLikes.push(data.feels_like);
+                        humidities.push(data.humidity);
+
+                        return `
+                        <tr class="transition duration-300 hover:bg-gray-100">
+                            <td class="px-6 py-3 ">${data.id}</td>
+                            <td class="px-6 py-3 ">${data.timestamp}</td>
+                            <td class="px-6 py-3 ">${data.temperature}</td>
+                            <td class="px-6 py-3 ">${data.feels_like}</td>
+                            <td class="px-6 py-3 ">${data.humidity}</td>
+                            <td class="flex flex-col items-center justify-center py-2 space-y-2  lg:flex-row lg:space-x-2 lg:space-y-0"">
+                                <button onclick="editData(${data.id})" class="px-3 py-1 text-white bg-yellow-500 rounded-lg cursor-pointer transition-transform duration-300 hover:scale-105">Edit</button>
+                                <button onclick="deleteData(${data.id})" class="px-3 py-1 text-white bg-red-500 rounded-lg cursor-pointer transition-transform duration-300 hover:scale-105">Delete</button>
+                            </td>
+                        </tr>`;
+                    })
+                    .join("");
+
+                $("#data-table-body").fadeOut(200, function () {
+                    $(this).html(newContent).fadeIn(300);
+                });
+
+                $("#page-info").text(
+                    `Page ${response.page} of ${response.total_pages}`
+                );
+
+                // Reverse the order of data for charts
+                timestamps.reverse();
+                temperatures.reverse();
+                feelsLikes.reverse();
+                humidities.reverse();
+
+                // Update charts with new data
+                updateCharts(timestamps, temperatures, feelsLikes, humidities);
+            })
+            .fail(function () {
+                console.error("Failed to fetch data");
+            });
+    }
+
+    function updateCharts(timestamps, temperatures, feelsLikes, humidities) {
+        updateChart(temperatureChartInstance, timestamps, temperatures);
+        updateChart(feelsLikeChartInstance, timestamps, feelsLikes);
+        updateChart(humidityChartInstance, timestamps, humidities);
+    }
+
+    function createChart(canvasId, label, data, borderColor) {
+        return new Chart(document.getElementById(canvasId).getContext("2d"), {
+            type: "line",
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: label,
+                        data: [],
+                        borderColor: borderColor,
+                        backgroundColor: borderColor.replace(", 1)", ", 0.2)"),
+                        fill: true,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: "Timestamp",
+                        },
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: label,
+                        },
+                        beginAtZero: true,
+                        suggestedMax: 40,
+                    },
+                },
+            },
+        });
+    }
+
+    function updateChart(chartInstance, labels, data) {
+        chartInstance.data.labels = labels;
+        chartInstance.data.datasets[0].data = data;
+        chartInstance.update();
+    }
+
+    function editData(id) {
+        let newTemperature = prompt("Enter new temperature for id = " + id);
+        let newFeelsLike = prompt("Enter new feels like for id = " + id);
+        let newHumidity = prompt("Enter new humidity for id = " + id);
+        if (newTemperature && newFeelsLike && newHumidity) {
+            $.ajax({
+                url: `/openweather/update/${id}`,
+                type: "PUT",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    temperature: parseFloat(newTemperature),
+                    feels_like: parseFloat(newFeelsLike),
+                    humidity: parseFloat(newHumidity),
+                }),
+                success: function () {
+                    fetchData(currentPage);
+                },
+            });
+        }
+    }
+
+    function deleteData(id) {
+        if (confirm("Are you sure you want to delete data id = " + id + "?")) {
+            $.ajax({
+                url: `/openweather/delete/${id}`,
+                type: "DELETE",
+                success: function () {
+                    fetchData(currentPage);
+                },
+            });
+        }
+    }
+</script>

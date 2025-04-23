@@ -1,0 +1,615 @@
+{% include 'layout.html' %}
+
+<div class="container flex-col justify-center p-7 mx-auto mt-2">
+    <!-- Header Section -->
+    <div class="mb-6">
+        <h1 class="text-3xl font-semibold text-gray-800">
+            Welcome
+            <span class="wave">👋</span>
+        </h1>
+    </div>
+
+    <!-- Recommendations Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Energy Saving Recommendations -->
+        <div class="p-6 transition-all duration-300 transform rounded-3xl shadow-[inset_2px_2px_5px_rgba(255,255,255,0.5),_inset_-2px_-2px_5px_rgba(0,0,0,0.1),_5px_5px_15px_rgba(0,0,0,0.12)] 
+            bg-gradient-to-br from-teal-300 via-teal-400 to-teal-500 text-white hover:shadow-[inset_1px_1px_3px_rgba(255,255,255,0.6),_inset_-1px_-1px_3px_rgba(0,0,0,0.08),_7px_7px_18px_rgba(0,0,0,0.15)] 
+            hover:scale-[1.03]">
+
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold text-white flex items-center space-x-2">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" 
+                         viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                        </path>
+                    </svg>
+                    <span>Energy Saving Recommendations</span>
+                </h3>
+                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]">
+                    <span>Real-Time</span>
+                </div>
+            </div>
+            <div id="recommendations" class="space-y-4 text-white">
+                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]">
+                    <span>🚨</span>
+                    <span>Ruangan kosong - Matikan AC untuk menghemat energi.</span>
+                </div>
+                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]">
+                    <span>💡</span>
+                    <span>Okupansi rendah - Kurangi intensitas lampu hingga 50%.</span>
+                </div>
+                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]">
+                    <span>🌡️</span>
+                    <span>Suhu ruangan tidak nyaman (27.34°C).</span>
+                </div>
+                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]">
+                    <span>💧</span>
+                    <span>Kelembaban ruangan tidak nyaman (65.43%).</span>
+                </div>
+            </div>
+        </div>   
+
+        <!-- LSTM Predictive Insights -->
+        <div
+            class="p-6 transition-all duration-300 transform rounded-3xl shadow-[inset_2px_2px_5px_rgba(255,255,255,0.5),_inset_-2px_-2px_5px_rgba(0,0,0,0.1),_5px_5px_15px_rgba(0,0,0,0.12)] 
+            bg-gradient-to-br from-orange-300 via-orange-400 to-orange-500 text-white hover:shadow-[inset_1px_1px_3px_rgba(255,255,255,0.6),_inset_-1px_-1px_3px_rgba(0,0,0,0.08),_7px_7px_18px_rgba(0,0,0,0.15)] 
+            hover:scale-[1.03]"
+        >
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold text-white">
+                    <svg
+                        class="inline-block w-6 h-6 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                        ></path>
+                    </svg>
+                    AI Predictive Insights (LSTM)
+                </h3>
+                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]">
+                    <span class="text-white"> Prediction</span>
+                </div>
+            </div>
+            <div class="space-y-4 text-white">
+                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]">
+                    📈 <span class="font-semibold">Next 1 Hour:</span> Prediksi
+                    kenaikan beban 15%
+                </div>
+                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]">
+                    🕒 <span class="font-semibold">Peak Time:</span> 14:00-16:00
+                    - Siapkan sumber energi alternatif
+                </div>
+                <canvas id="lstmChart" class="w-full mt-4 h-28"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Overview Section -->
+    <div class="grid grid-cols-1 gap-6 mb-12 md:grid-cols-2 lg:grid-cols-4">
+        <!-- Weather Stats -->
+        <div
+            class="p-6 transition-all duration-300 transform rounded-3xl shadow-[inset_2px_2px_5px_rgba(255,255,255,0.5),_inset_-2px_-2px_5px_rgba(0,0,0,0.1),_5px_5px_15px_rgba(0,0,0,0.12)] 
+            bg-gradient-to-br from-blue-300 via-blue-400 to-blue-500 text-gray-800 hover:shadow-[inset_1px_1px_3px_rgba(255,255,255,0.6),_inset_-1px_-1px_3px_rgba(0,0,0,0.08),_7px_7px_18px_rgba(0,0,0,0.15)] 
+            hover:scale-[1.03]"
+        >
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-semibold text-white">Weather</h3>
+                    <p class="text-white text-opacity-80" id="weatherStats">
+                        Loading...
+                    </p>
+                </div>
+                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]">
+                    <svg
+                        class="w-8 h-8 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                        ></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-4">
+                <canvas id="weatherChart" class="w-full h-24"></canvas>
+            </div>
+        </div>
+
+        <!-- Energy Stats -->
+        <div
+            class="p-6 transition-all duration-300 transform rounded-3xl 
+       shadow-[inset_2px_2px_6px_rgba(255,255,255,0.6),_inset_-2px_-2px_6px_rgba(0,0,0,0.08),_6px_6px_15px_rgba(0,0,0,0.12)] 
+       bg-gradient-to-br from-green-200 via-green-400 to-green-600 text-gray-800 
+       hover:shadow-[inset_1px_1px_4px_rgba(255,255,255,0.7),_inset_-1px_-1px_4px_rgba(0,0,0,0.08),_8px_8px_18px_rgba(0,0,0,0.15)] 
+       hover:scale-[1.03]"
+        >
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-semibold text-white">Energy</h3>
+                    <p class="text-white text-opacity-80" id="energyStats">
+                        Loading...
+                    </p>
+                </div>
+                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]">
+                    <svg
+                        class="w-8 h-8 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                        ></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-4">
+                <canvas id="energyChart" class="w-full h-24"></canvas>
+            </div>
+        </div>
+
+        <!-- Temperature Stats -->
+        <div
+            class="p-6 transition-all duration-300 transform rounded-3xl shadow-[inset_2px_2px_5px_rgba(255,255,255,0.5),_inset_-2px_-2px_5px_rgba(0,0,0,0.1),_5px_5px_15px_rgba(0,0,0,0.12)] 
+            bg-gradient-to-br from-purple-300 via-purple-400 to-purple-500 text-gray-800 hover:shadow-[inset_1px_1px_3px_rgba(255,255,255,0.6),_inset_-1px_-1px_3px_rgba(0,0,0,0.08),_7px_7px_18px_rgba(0,0,0,0.15)] 
+            hover:scale-[1.03]"
+        >
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-semibold text-white">
+                        Temperature
+                    </h3>
+                    <p class="text-white text-opacity-80" id="temperatureStats">
+                        Loading...
+                    </p>
+                </div>
+                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]">
+                    <svg
+                        class="w-8 h-8 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                        ></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-4">
+                <canvas id="temperatureChart" class="w-full h-24"></canvas>
+            </div>
+        </div>
+
+        <!-- Occupancy Stats -->
+        <div
+            class="p-6 transition-all duration-300 transform rounded-3xl shadow-[inset_2px_2px_5px_rgba(255,255,255,0.5),_inset_-2px_-2px_5px_rgba(0,0,0,0.1),_5px_5px_15px_rgba(0,0,0,0.12)] 
+            bg-gradient-to-br from-indigo-300 via-indigo-400 to-indigo-500 text-gray-800 hover:shadow-[inset_1px_1px_3px_rgba(255,255,255,0.6),_inset_-1px_-1px_3px_rgba(0,0,0,0.08),_7px_7px_18px_rgba(0,0,0,0.15)] 
+            hover:scale-[1.03]"
+        >
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-semibold text-white">Occupancy</h3>
+                    <p class="text-white text-opacity-80" id="occupancyStats">
+                        Loading...
+                    </p>
+                </div>
+                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]">
+                    <svg
+                        class="w-8 h-8 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                        ></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-4">
+                <canvas id="occupancyChart" class="w-full h-24"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Cards Section -->
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <!-- Weather Monitoring Card -->
+        <div
+            class="p-6 transition-shadow duration-300 transform bg-white rounded-3xl shadow-lg hover:shadow-xl hover:scale-105"
+        >
+            <div class="flex flex-col items-center text-center">
+                <div class="p-4 mb-4 bg-blue-100 rounded-full">
+                    <svg
+                        class="w-12 h-12 text-blue-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                        ></path>
+                    </svg>
+                </div>
+                <h3 class="mb-2 text-xl font-semibold text-gray-800">
+                    Weather Monitoring
+                </h3>
+                <p class="mb-4 text-gray-600">
+                    Monitor real-time weather data, including temperature,
+                    humidity, and more.
+                </p>
+                <a
+                    href="/openweather"
+                    class="px-6 py-2 text-white bg-blue-500 rounded-3xl hover:bg-blue-600"
+                >
+                    Go to Weather
+                </a>
+            </div>
+        </div>
+
+        <!-- Energy Monitoring Card -->
+        <div
+            class="p-6 transition-shadow duration-300 transform bg-white rounded-3xl shadow-lg hover:shadow-xl hover:scale-105"
+        >
+            <div class="flex flex-col items-center text-center">
+                <div class="p-4 mb-4 bg-green-100 rounded-full">
+                    <svg
+                        class="w-12 h-12 text-green-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                        ></path>
+                    </svg>
+                </div>
+                <h3 class="mb-2 text-xl font-semibold text-gray-800">
+                    Energy Monitoring
+                </h3>
+                <p class="mb-4 text-gray-600">
+                    Track energy consumption and optimize usage for efficiency.
+                </p>
+                <a
+                    href="/pzem"
+                    class="px-6 py-2 text-white bg-green-500 rounded-3xl hover:bg-green-600"
+                >
+                    Go to Energy
+                </a>
+            </div>
+        </div>
+
+        <!-- Temperature Monitoring Card -->
+        <div
+            class="p-6 transition-shadow duration-300 transform bg-white rounded-3xl shadow-lg hover:shadow-xl hover:scale-105"
+        >
+            <div class="flex flex-col items-center text-center">
+                <div class="p-4 mb-4 bg-purple-100 rounded-full">
+                    <svg
+                        class="w-12 h-12 text-purple-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                        ></path>
+                    </svg>
+                </div>
+                <h3 class="mb-2 text-xl font-semibold text-gray-800">
+                    Temperature Monitoring
+                </h3>
+                <p class="mb-4 text-gray-600">
+                    Monitor temperature changes in real-time for better control.
+                </p>
+                <a
+                    href="/aht10"
+                    class="px-6 py-2 text-white bg-purple-500 rounded-3xl hover:bg-purple-600"
+                >
+                    Go to Temperature
+                </a>
+            </div>
+        </div>
+
+        <!-- Camera Monitoring Card -->
+        <div
+            class="p-6 transition-shadow duration-300 transform bg-white rounded-3xl shadow-lg hover:shadow-xl hover:scale-105"
+        >
+            <div class="flex flex-col items-center text-center">
+                <div class="p-4 mb-4 bg-indigo-100 rounded-full">
+                    <svg
+                        class="w-12 h-12 text-indigo-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                        ></path>
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                        ></path>
+                    </svg>
+                </div>
+                <h3 class="mb-2 text-xl font-semibold text-gray-800">
+                    Camera Monitoring
+                </h3>
+                <p class="mb-4 text-gray-600">
+                    Track room occupancy and view live camera feeds with
+                    real-time detection.
+                </p>
+                <a
+                    href="/camera"
+                    class="px-6 py-2 text-white bg-indigo-500 rounded-3xl hover:bg-indigo-600"
+                >
+                    Go to Camera
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function fetchWeatherData() {
+        fetch("/openweather/data_openweather")
+            .then((response) => response.json())
+            .then((data) => {
+                const latest = data.data[0];
+                document.getElementById(
+                    "weatherStats"
+                ).textContent = `${latest.temperature}°C, ${latest.humidity}% Humidity`;
+                const weatherCtx = document
+                    .getElementById("weatherChart")
+                    .getContext("2d");
+                if (window.weathersChart) window.weathersChart.destroy();
+                window.weathersChart = new Chart(weatherCtx, {
+                    type: "line",
+                    data: {
+                        labels: data.data
+                            .slice(0, 10)
+                            .reverse()
+                            .map((d) => d.timestamp.split(" ")[1]),
+                        datasets: [
+                            {
+                                label: "Temperature (°C)",
+                                data: data.data
+                                    .slice(0, 10)
+                                    .reverse()
+                                    .map((d) => d.temperature),
+                                borderColor: "rgba(255, 255, 255, 0.8)",
+                                backgroundColor: "rgba(255, 255, 255, 0.2)",
+                                tension: 0.3,
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { display: false },
+                            y: { display: false },
+                        },
+                    },
+                });
+            });
+    }
+
+    function fetchEnergyData() {
+        fetch("/pzem/data_pzem")
+            .then((response) => response.json())
+            .then((data) => {
+                const latest = data.data[0];
+                document.getElementById(
+                    "energyStats"
+                ).textContent = `${latest.voltage}V, ${latest.current}A`;
+                const energyCtxs = document
+                    .getElementById("energyChart")
+                    .getContext("2d");
+                if (window.energysChart) window.energysChart.destroy();
+                window.energysChart = new Chart(energyCtxs, {
+                    type: "bar",
+                    data: {
+                        labels: data.data
+                            .slice(0, 10)
+                            .reverse()
+                            .map((d) => d.timestamp.split(" ")[1]),
+                        datasets: [
+                            {
+                                label: "Power (W)",
+                                data: data.data
+                                    .slice(0, 10)
+                                    .reverse()
+                                    .map((d) => d.power),
+                                borderColor: "rgba(255, 255, 255, 0.8)",
+                                backgroundColor: "rgba(255, 255, 255, 0.2)",
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { display: false },
+                            y: { display: false },
+                        },
+                    },
+                });
+            });
+    }
+
+    function fetchTemperatureData() {
+        fetch("/aht10/data_aht10")
+            .then((response) => response.json())
+            .then((data) => {
+                const latest = data.data[0];
+                document.getElementById(
+                    "temperatureStats"
+                ).textContent = `${latest.temperature}°C, ${latest.humidity}% Humidity`;
+                const tempCtx = document
+                    .getElementById("temperatureChart")
+                    .getContext("2d");
+                if (window.tempChart) window.tempChart.destroy();
+                window.tempChart = new Chart(tempCtx, {
+                    type: "line",
+                    data: {
+                        labels: data.data
+                            .slice(0, 10)
+                            .reverse()
+                            .map((d) => d.timestamp.split(" ")[1]),
+                        datasets: [
+                            {
+                                label: "Temperature (°C)",
+                                data: data.data
+                                    .slice(0, 10)
+                                    .reverse()
+                                    .map((d) => d.temperature),
+                                borderColor: "rgba(255, 255, 255, 0.8)",
+                                backgroundColor: "rgba(255, 255, 255, 0.2)",
+                                tension: 0.3,
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { display: false },
+                            y: { display: false },
+                        },
+                    },
+                });
+            });
+    }
+
+    function fetchOccupancyData() {
+        fetch("/camera/data_occupancy")
+            .then((response) => response.json())
+            .then((data) => {
+                const latest = data.data[0];
+                document.getElementById(
+                    "occupancyStats"
+                ).textContent = `${latest.occupant} People`;
+                const occupancyCtx = document
+                    .getElementById("occupancyChart")
+                    .getContext("2d");
+                if (window.occupancysChart) window.occupancysChart.destroy();
+                window.occupancysChart = new Chart(occupancyCtx, {
+                    type: "line",
+                    data: {
+                        labels: data.data
+                            .slice(0, 10)
+                            .reverse()
+                            .map((d) => d.timestamp.split(" ")[1]),
+                        datasets: [
+                            {
+                                label: "Occupancy",
+                                data: data.data
+                                    .slice(0, 10)
+                                    .reverse()
+                                    .map((d) => d.occupant),
+                                borderColor: "rgba(255, 255, 255, 0.8)",
+                                backgroundColor: "rgba(255, 255, 255, 0.2)",
+                                tension: 0.3,
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { display: false },
+                            y: { display: false },
+                        },
+                    },
+                });
+            });
+    }
+
+    function fetchRecommendations() {
+        fetch("/analysis/recommendations")
+            .then((response) => response.json())
+            .then((data) => {
+                const recommendationsDiv =
+                    document.getElementById("recommendations");
+                if (data.recommendations.length > 0) {
+                    recommendationsDiv.innerHTML = data.recommendations
+                        .map(
+                            (rec) =>
+                                `<div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]">${rec.icon} ${rec.message}</div>`
+                        )
+                        .join("");
+                } else {
+                    recommendationsDiv.innerHTML = `<div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]">🎉 Tidak ada rekomendasi khusus. Sistem berjalan optimal!</div>`;
+                }
+            })
+            .catch((error) => {
+                console.error("Error fetching recommendations:", error);
+                document.getElementById(
+                    "recommendations"
+                ).innerHTML = `<div class="p-3 bg-white rounded-lg bg-opacity-10">❌ Gagal memuat rekomendasi. Silakan coba lagi.</div>`;
+            });
+    }
+
+    function updateData() {
+        fetchWeatherData();
+        fetchEnergyData();
+        fetchTemperatureData();
+        fetchOccupancyData();
+        fetchRecommendations();
+    }
+
+    $(document).ready(function () {
+        updateData();
+        setInterval(updateData, 10000);
+    });
+</script>

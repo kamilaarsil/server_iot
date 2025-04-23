@@ -1,0 +1,41 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+.venv/
+env/
+venv/
+
+# uv / pip install lock file
+uv.lock
+
+# Python environment/version management
+.python-version
+
+# Local SQLite database
+*.db
+*.sqlite3
+
+# Alembic migration scripts cache
+alembic/versions/__pycache__/
+
+# VS Code settings (optional)
+.vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Tailwind CSS generated files (if any are generated)
+*.css
+*.map
+
+# Node-related (if you later use npm/yarn with Tailwind)
+node_modules/
+
+# Log files
+*.log
+
+models/

@@ -1,0 +1,458 @@
+{% include 'layout.html' %}
+
+<div
+    class="container p-6 mx-auto mt-8 mb-6 max-w-8xl"
+>
+    <h1 class="mb-3 text-4xl font-bold text-left px-6 text-gray-800">
+        Energy Consumption
+    </h1>
+
+    <!-- Table Container -->
+    <div class="p-6 bg-gray-100 min-h-screen flex justify-center items-center">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-4xl">
+            <!-- Header Section -->
+            <div class="flex justify-between items-center pb-4-b">
+                <h2 class="text-2xl font-semibold text-gray-800">Data Details</h2>
+                <button onclick="resetData()" class="px-3 py-1 text-blue-800 bg-blue-100 rounded-lg cursor-pointer transition-transform duration-300 hover:scale-105">Reset
+                </button>
+            </div>
+
+            <!-- Table Section -->
+            <div class="overflow-x-auto mt-4">
+                <table class="w-full table-auto">
+                    <thead>
+                        <tr class="text-white bg-gradient-to-r from-blue-500 to-blue-700">
+                            <th class="px-6 py-3 text-center">ID</th>
+                            <th class="px-6 py-3 text-center">Timestamp</th>
+                            <th class="px-6 py-3 text-center">Voltage (V)</th>
+                            <th class="px-6 py-3 text-center">Current (A)</th>
+                            <th class="px-6 py-3 text-center">Power (W)</th>
+                            <th class="px-6 py-3 text-center">Energy (kWh)</th>
+                            <th class="px-6 py-3 text-center">Frequency (Hz)</th>
+                            <th class="px-6 py-3 text-center">Power Factor</th>
+                            <th class="px-6 py-3 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody
+                        id="data-table-body"
+                        class="divide-y divide-gray-200 text-center">
+                            <tr class="bg-white hover:bg-gray-50 shadow-md rounded-lg overflow-hidden">
+                            </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="container p-4 mx-auto mt-12">
+        <h2 class="mb-4 text-3xl font-bold text-center">
+            PZEM Sensor Data Charts
+        </h2>
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            <!-- Voltage Chart -->
+            <div>
+                <h3 class="mb-4 text-2xl font-bold text-center">
+                    Voltage Chart
+                </h3>
+                <div class="min-h-[400px]">
+                    <canvas id="voltageChart"></canvas>
+                </div>
+            </div>
+            <!-- Current Chart -->
+            <div>
+                <h3 class="mb-4 text-2xl font-bold text-center">
+                    Current Chart
+                </h3>
+                <div class="min-h-[400px]">
+                    <canvas id="currentChart"></canvas>
+                </div>
+            </div>
+            <!-- Power Chart -->
+            <div>
+                <h3 class="mb-4 text-2xl font-bold text-center">Power Chart</h3>
+                <div class="min-h-[400px]">
+                    <canvas id="powerChart"></canvas>
+                </div>
+            </div>
+            <!-- Energy Chart -->
+            <div>
+                <h3 class="mb-4 text-2xl font-bold text-center">
+                    Energy Chart
+                </h3>
+                <div class="min-h-[400px]">
+                    <canvas id="energyChart"></canvas>
+                </div>
+            </div>
+            <!-- Frequency Chart -->
+            <div>
+                <h3 class="mb-4 text-2xl font-bold text-center">
+                    Frequency Chart
+                </h3>
+                <div class="min-h-[400px]">
+                    <canvas id="frequencyChart"></canvas>
+                </div>
+            </div>
+            <!-- Power Factor Chart -->
+            <div>
+                <h3 class="mb-4 text-2xl font-bold text-center">
+                    Power Factor Chart
+                </h3>
+                <div class="min-h-[400px]">
+                    <canvas id="powerFactorChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="flex justify-center mt-6 space-x-4">
+        <button
+            id="prev-page"
+            class="px-6 py-3 text-sm transition duration-300 bg-gray-300 rounded-lg shadow-md lg:text-lg hover:bg-gray-400"
+        >
+            Previous
+        </button>
+        <span
+            id="page-info"
+            class="px-4 py-3 text-sm font-medium text-gray-700"
+        ></span>
+        <button
+            id="next-page"
+            class="px-6 py-3 text-sm transition duration-300 bg-gray-300 rounded-lg shadow-md lg:text-lg hover:bg-gray-400"
+        >
+            Next
+        </button>
+    </div>
+</div>
+
+<script>
+    let currentPage = 1;
+    let totalPages = 1;
+    let voltageChartInstance = null;
+    let currentChartInstance = null;
+    let powerChartInstance = null;
+    let energyChartInstance = null;
+    let frequencyChartInstance = null;
+    let powerFactorChartInstance = null;
+
+    $(document).ready(function () {
+        // Initialize charts with empty data
+        voltageChartInstance = createChart(
+            "voltageChart",
+            "Voltage (V)",
+            [],
+            "rgba(255, 99, 132, 1)"
+        );
+        currentChartInstance = createChart(
+            "currentChart",
+            "Current (A)",
+            [],
+            "rgba(54, 162, 235, 1)"
+        );
+        powerChartInstance = createChart(
+            "powerChart",
+            "Power (W)",
+            [],
+            "rgba(75, 192, 192, 1)"
+        );
+        energyChartInstance = createChart(
+            "energyChart",
+            "Energy (kWh)",
+            [],
+            "rgba(153, 102, 255, 1)"
+        );
+        frequencyChartInstance = createChart(
+            "frequencyChart",
+            "Frequency (Hz)",
+            [],
+            "rgba(255, 159, 64, 1)"
+        );
+        powerFactorChartInstance = createChart(
+            "powerFactorChart",
+            "Power Factor",
+            [],
+            "rgba(201, 203, 207, 1)"
+        );
+
+        // Fetch data and update charts immediately
+        fetchData(currentPage);
+
+        // Update data and charts every 10 seconds
+        setInterval(() => {
+            fetchData(currentPage);
+        }, 10000);
+
+        $("#prev-page").click(function () {
+            if (currentPage > 1) {
+                currentPage--;
+                fetchData(currentPage);
+            }
+        });
+
+        $("#next-page").click(function () {
+            if (currentPage < totalPages) {
+                currentPage++;
+                fetchData(currentPage);
+            }
+        });
+    });
+
+    function fetchData(page, callback) {
+        $.getJSON(`/pzem/data_pzem?page=${page}`)
+            .done(function (response) {
+                totalPages = response.total_pages;
+                let timestamps = [],
+                    voltages = [],
+                    currents = [],
+                    powers = [],
+                    energies = [],
+                    frequencies = [],
+                    powerFactors = [];
+
+                let newContent = response.data
+                    .map((data) => {
+                        timestamps.push(data.timestamp);
+                        voltages.push(data.voltage);
+                        currents.push(data.current);
+                        powers.push(data.power);
+                        energies.push(data.energy);
+                        frequencies.push(data.frequency);
+                        powerFactors.push(data.power_factor);
+
+                        return `
+                        <tr class="transition duration-300 hover:bg-gray-100">
+                            <td class="px-6 py-3">${data.id}</td>
+                            <td class="px-6 py-3">${data.timestamp}</td>
+                            <td class="px-6 py-3">${data.voltage}</td>
+                            <td class="px-6 py-3">${data.current}</td>
+                            <td class="px-6 py-3">${data.power}</td>
+                            <td class="px-6 py-3">${data.energy}</td>
+                            <td class="px-6 py-3">${data.frequency}</td>
+                            <td class="px-6 py-3">${data.power_factor}</td>
+                            <td class="flex flex-col items-center justify-center py-2 space-y-2 lg:flex-row lg:space-x-2 lg:space-y-0"">
+                                <button onclick="editData(${data.id})" class="px-3 py-1 text-white bg-yellow-500 rounded-lg cursor-pointer transition-transform duration-300 hover:scale-105">Edit</button>
+                                <button onclick="deleteData(${data.id})" class="px-3 py-1 text-white bg-red-500 rounded-lg cursor-pointer transition-transform duration-300 hover:scale-105">Delete</button>
+                            </td>
+                        </tr>`;
+                    })
+                    .join("");
+
+                $("#data-table-body").fadeOut(200, function () {
+                    $(this).html(newContent).fadeIn(300);
+                });
+
+                $("#page-info").text(
+                    `Page ${response.page} of ${response.total_pages}`
+                );
+
+                // Membalikkan urutan data untuk grafik
+                timestamps.reverse();
+                voltages.reverse();
+                currents.reverse();
+                powers.reverse();
+                energies.reverse();
+                frequencies.reverse();
+                powerFactors.reverse();
+
+                // Memperbarui grafik setelah data baru diterima
+                updateCharts(
+                    timestamps,
+                    voltages,
+                    currents,
+                    powers,
+                    energies,
+                    frequencies,
+                    powerFactors
+                );
+
+                if (callback) {
+                    callback();
+                }
+            })
+            .fail(function () {
+                console.error("Failed to fetch data");
+            });
+    }
+
+    function updateCharts(
+        timestamps,
+        voltages,
+        currents,
+        powers,
+        energies,
+        frequencies,
+        powerFactors
+    ) {
+        // Update Voltage Chart
+        if (!voltageChartInstance) {
+            voltageChartInstance = createChart(
+                "voltageChart",
+                "Voltage (V)",
+                voltages,
+                "rgba(255, 99, 132, 1)"
+            );
+        } else {
+            updateChart(voltageChartInstance, timestamps, voltages);
+        }
+
+        // Update Current Chart
+        if (!currentChartInstance) {
+            currentChartInstance = createChart(
+                "currentChart",
+                "Current (A)",
+                currents,
+                "rgba(54, 162, 235, 1)"
+            );
+        } else {
+            updateChart(currentChartInstance, timestamps, currents);
+        }
+
+        // Update Power Chart
+        if (!powerChartInstance) {
+            powerChartInstance = createChart(
+                "powerChart",
+                "Power (W)",
+                powers,
+                "rgba(75, 192, 192, 1)"
+            );
+        } else {
+            updateChart(powerChartInstance, timestamps, powers);
+        }
+
+        // Update Energy Chart
+        if (!energyChartInstance) {
+            energyChartInstance = createChart(
+                "energyChart",
+                "Energy (kWh)",
+                energies,
+                "rgba(153, 102, 255, 1)"
+            );
+        } else {
+            updateChart(energyChartInstance, timestamps, energies);
+        }
+
+        // Update Frequency Chart
+        if (!frequencyChartInstance) {
+            frequencyChartInstance = createChart(
+                "frequencyChart",
+                "Frequency (Hz)",
+                frequencies,
+                "rgba(255, 159, 64, 1)"
+            );
+        } else {
+            updateChart(frequencyChartInstance, timestamps, frequencies);
+        }
+
+        // Update Power Factor Chart
+        if (!powerFactorChartInstance) {
+            powerFactorChartInstance = createChart(
+                "powerFactorChart",
+                "Power Factor",
+                powerFactors,
+                "rgba(201, 203, 207, 1)"
+            );
+        } else {
+            updateChart(powerFactorChartInstance, timestamps, powerFactors);
+        }
+    }
+
+    function createChart(canvasId, label, data,Color) {
+        return new Chart(document.getElementById(canvasId).getContext("2d"), {
+            type: "line",
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: label,
+                        data: [],
+                    Color:Color,
+                        backgroundColor:Color.replace(", 1)", ", 0.2)"),
+                        fill: true,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: "Timestamp",
+                        },
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: label,
+                        },
+                        beginAtZero: true,
+                    },
+                },
+            },
+        });
+    }
+
+    function updateChart(chartInstance, labels, data) {
+        chartInstance.data.labels = labels;
+        chartInstance.data.datasets[0].data = data;
+        chartInstance.update();
+    }
+
+    function editData(id) {
+        let fields = [
+            "voltage",
+            "current",
+            "power",
+            "energy",
+            "frequency",
+            "power_factor",
+        ];
+        let updatedData = {};
+
+        fields.forEach((field) => {
+            let newValue = prompt(
+                `Enter new ${field.replace("_", " ")} for id = ${id}`
+            );
+            if (newValue) {
+                updatedData[field] = parseFloat(newValue);
+            }
+        });
+
+        if (Object.keys(updatedData).length > 0) {
+            $.ajax({
+                url: `/pzem/update/${id}`,
+                type: "PUT",
+                contentType: "application/json",
+                data: JSON.stringify(updatedData),
+                success: function () {
+                    fetchData(currentPage);
+                },
+            });
+        }
+    }
+
+    function deleteData(id) {
+        if (confirm("Are you sure you want to delete data id = " + id + "?")) {
+            $.ajax({
+                url: `/pzem/delete/${id}`,
+                type: "DELETE",
+                success: function () {
+                    fetchData(currentPage);
+                },
+            });
+        }
+    }
+
+    function resetData() {
+        if (confirm("Are you sure you want to reset all data?")) {
+            $.ajax({
+                url: `/pzem/reset_energy/`,
+                type: "GET",
+                success: function () {
+                    fetchData(currentPage);
+                },
+            });
+        }
+    }
+</script>
