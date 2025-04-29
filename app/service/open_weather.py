@@ -1,4 +1,10 @@
 import httpx
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+api_url = f"http://{os.environ['IP_SERVER']}:8000/openweather/create"
 
 async def get_weather(api_key, lat, lon):
     async with httpx.AsyncClient() as client:
@@ -30,7 +36,7 @@ async def get_weather(api_key, lat, lon):
 async def store_data(data):
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post("http://localhost:8000/openweather/create", json=data)
+            response = await client.post(api_url, json=data)
             response.raise_for_status()
             print("OpenWeather data stored successfully")
         except httpx.HTTPStatusError as e:

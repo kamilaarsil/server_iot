@@ -4,10 +4,14 @@ import time
 import struct
 from modbus_tk import defines as cst 
 import httpx
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Konfigurasi port serial
 PORT = "/dev/ttyUSB0"  # Ganti dengan port USB-TTL Anda
-api_url = "http://localhost:8000/pzem/create"
+api_url = f"http://{os.environ['IP_SERVER']}:8000/pzem/create"
 
 async def read_pzem_data():
     try:
@@ -59,7 +63,7 @@ async def read_pzem_data():
 async def store_data(data):
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post("http://localhost:8000/pzem/create", json=data)
+            response = await client.post(api_url, json=data)
             response.raise_for_status()
             print("PZEM data stored successfully")
         except httpx.HTTPStatusError as e:

@@ -57,7 +57,7 @@ async def run_service():
         
 def run_scheduler():
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(run_service, 'interval', minutes=1)
+    scheduler.add_job(run_service, 'interval', minutes=5)
     scheduler.start()
 
 @asynccontextmanager

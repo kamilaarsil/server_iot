@@ -78,14 +78,18 @@
                     <span class="text-white"> Prediction</span>
                 </div>
             </div>
-            <div class="space-y-4 text-white">
-                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]">
-                    📈 <span class="font-semibold">Next 1 Hour:</span> Prediksi
-                    kenaikan beban 15%
+            <div class="space-y-4 text-white" id="modelRecommendationCard">
+                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]" id="optimalTsetInfo">
+                    📊 Optimal T_set: <span class="font-semibold">-</span>
                 </div>
-                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]">
-                    🕒 <span class="font-semibold">Peak Time:</span> 14:00-16:00
-                    - Siapkan sumber energi alternatif
+                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]" id="predictedPowerInfo">
+                    ⚡ Predicted Power: <span class="font-semibold">-</span>
+                </div>
+                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]" id="savingInfo">
+                    💡 Estimated Saving: <span class="font-semibold">-</span>
+                </div>
+                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]" id="recommendationText">
+                    📢 Recommendation: <span class="font-semibold">-</span>
                 </div>
                 <canvas id="lstmChart" class="w-full mt-4 h-28"></canvas>
             </div>
@@ -396,6 +400,34 @@
 </div>
 
 <script>
+    function fetchModelRecommendation() {
+        fetch("/analysis/recommendation-model")
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error("No recommendation data available");
+                }
+                return response.json();
+            })
+            .then((data) => {
+                document.getElementById("optimalTsetInfo").innerHTML =
+                    `📊 Optimal T_set: <span class="font-semibold">${data.optimal_T_set}°C</span>`;
+    
+                document.getElementById("predictedPowerInfo").innerHTML =
+                    `⚡ Predicted Power: <span class="font-semibold">${data.predicted_power} W</span>`;
+    
+                document.getElementById("savingInfo").innerHTML =
+                    `💡 Estimated Saving: <span class="font-semibold">${data.estimated_saving} W</span>`;
+    
+                document.getElementById("recommendationText").innerHTML =
+                    `📢 Recommendation: <span class="font-semibold">${data.recommendation}</span>`;
+            })
+            .catch((error) => {
+                console.error("Error fetching model recommendation:", error);
+                document.getElementById("modelRecommendationCard").innerHTML =
+                    `<div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]">⚠️ Tidak ada data rekomendasi tersedia saat ini.</div>`;
+            });
+    }
+    
     function fetchWeatherData() {
         fetch("/openweather/data_openweather")
             .then((response) => response.json())
@@ -606,6 +638,7 @@
         fetchTemperatureData();
         fetchOccupancyData();
         fetchRecommendations();
+        fetchModelRecommendation();
     }
 
     $(document).ready(function () {

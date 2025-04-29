@@ -5,12 +5,16 @@ from datetime import datetime
 import warnings
 import httpx
 from ..utils.camera_manager import camera_stream
+from dotenv import load_dotenv
+
+load_dotenv()
 
 warnings.filterwarnings("ignore", category=UserWarning, module="torchvision.models._utils")
 
 MODEL_PATH = "models/retinanet_resnet50_fpn_coco-eeacb38b.pth"
 MIN_PROBABILITY = 15
-FASTAPI_URL = "http://localhost:8000/camera/create"  # API Endpoint
+
+api_url = f"http://{os.environ['IP_SERVER']}:8000/camera/create"
 
 execution_path = os.getcwd()
 
@@ -78,7 +82,7 @@ async def people_counter():
 async def store_data(num_people):
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(FASTAPI_URL, json={"occupant": num_people})
+            response = await client.post(api_url, json={"occupant": num_people})
             response.raise_for_status()
             print("WebCam data stored successfully")
         except httpx.HTTPStatusError as e:

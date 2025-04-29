@@ -27,6 +27,10 @@ dependencies = [
     "mock==4.0.3",
     "imageai>=3.0.3",
     "modbus-tk>=1.1.4",
+    "joblib>=1.4.2",
+    "scikit-learn>=1.6.1",
+    "pandas>=2.2.3",
+    "python-dotenv>=1.1.0",
 ]
 
 [[tool.pip.additional-index-urls]]
