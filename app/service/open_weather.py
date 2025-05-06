@@ -2,9 +2,9 @@ import httpx
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
-api_url = f"http://{os.environ['IP_SERVER']}:8000/openweather/create"
+api_url = f"http://{os.environ.get('IP_SERVER')}:8000/openweather/create"
 
 async def get_weather(api_key, lat, lon):
     async with httpx.AsyncClient() as client:

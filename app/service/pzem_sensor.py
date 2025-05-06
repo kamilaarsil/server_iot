@@ -7,11 +7,11 @@ import httpx
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 # Konfigurasi port serial
 PORT = "/dev/ttyUSB0"  # Ganti dengan port USB-TTL Anda
-api_url = f"http://{os.environ['IP_SERVER']}:8000/pzem/create"
+api_url = f"http://{os.environ.get('IP_SERVER')}:8000/pzem/create"
 
 async def read_pzem_data():
     try:

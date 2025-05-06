@@ -1,12 +1,17 @@
 import numpy as np
+import pandas as pd
 import joblib
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, HTTPException
 from starlette import status
 from tensorflow import keras
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.losses import MeanSquaredError
+from tensorflow.keras.metrics import MeanAbsoluteError
+from datetime import datetime
 
 from ..database import Sessionlocal
-from ..models import DataAnalysis
+from ..models import DataAnalysis, RecommendationLog
 
 router = APIRouter(
     prefix="/analysis",
@@ -21,37 +26,32 @@ def get_db():
         db.close()
 
 # Load once at module level
-model = keras.models.load_model('models/power_prediction_model.h5', compile=False)
+model = keras.models.load_model('models/prediction_model.h5', compile=False)
 scaler_X = joblib.load('models/scaler_X.pkl')
 scaler_y = joblib.load('models/scaler_y.pkl')
 
-
 # Compile the model
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.losses import MeanSquaredError
-from tensorflow.keras.metrics import MeanAbsoluteError
-
 model.compile(optimizer=Adam(),
               loss=MeanSquaredError(),
               metrics=[MeanAbsoluteError()])
 
 def recommend_optimal_T_set(model, scaler_X, scaler_y, real_time_data, current_T_set, current_actual_power):
-    comfort_range = range(17, 22)
+    comfort_range = range(17, 21)
+    feature_order = scaler_X.feature_names_in_ if hasattr(scaler_X, 'feature_names_in_') else ['T_set', 'H_indoor', 'T_outdoor', 'H_outdoor', 'N']
     candidates = []
 
     for T_set_candidate in comfort_range:
         if T_set_candidate == current_T_set:
             continue
 
-        features = np.array([
-            T_set_candidate,
-            real_time_data['H_indoor'],
-            real_time_data['T_outdoor'],
-            real_time_data['H_outdoor'],
-            real_time_data['N']
-        ]).reshape(1, -1)
+        # Build feature vector with correct order
+        feature_values = [
+            T_set_candidate if name == 'T_set' else real_time_data.get(name, 0)
+            for name in feature_order
+        ]
+        features_df = pd.DataFrame([feature_values], columns=feature_order)
 
-        features_scaled = scaler_X.transform(features)
+        features_scaled = scaler_X.transform(features_df)
         pred_power_scaled = model.predict(features_scaled, verbose=0)
         pred_power = scaler_y.inverse_transform(pred_power_scaled)[0][0]
 
@@ -74,7 +74,6 @@ def recommend_optimal_T_set(model, scaler_X, scaler_y, real_time_data, current_T
         'power_saving': round(float(saving), 2),
         'recommendation': recommendation
     }
-
 
 @router.get("/recommendation-model", status_code=status.HTTP_200_OK)
 async def get_model_recommendation(db: Session = Depends(get_db)):
@@ -102,6 +101,26 @@ async def get_model_recommendation(db: Session = Depends(get_db)):
         real_time_data, current_T_set, current_actual_power
     )
 
+    # ✅ Only log if the T_set has changed
+    last_log = (
+        db.query(RecommendationLog)
+        .order_by(RecommendationLog.timestamp.desc())
+        .first()
+    )
+
+    if not last_log or last_log.current_t_set != current_T_set:
+        log = RecommendationLog(
+            timestamp=datetime.now(),
+            current_t_set=current_T_set,
+            current_power=current_actual_power,
+            optimal_t_set=result["optimal_T_set"],
+            predicted_power=result["predicted_optimal_power"],
+            estimated_saving=result["power_saving"],
+            recommendation_text=result["recommendation"]
+        )
+        db.add(log)
+        db.commit()
+
     return {
         "timestamp": latest_data.timestamp.strftime("%Y-%m-%d %H:%M"),
         "current_T_set": current_T_set,
@@ -114,7 +133,6 @@ async def get_model_recommendation(db: Session = Depends(get_db)):
 
 @router.get("/recommendations", status_code=status.HTTP_200_OK)
 async def get_recommendations(db: Session = Depends(get_db)):
-    # Ambil data terbaru
     latest_data = db.query(DataAnalysis).order_by(DataAnalysis.timestamp.desc()).first()
 
     if not latest_data:
@@ -122,64 +140,55 @@ async def get_recommendations(db: Session = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND, detail="No data available"
         )
 
-    # Rule-based recommendations
     recommendations = []
 
-    # Rule 1: Matikan AC jika ruangan kosong
     if latest_data.occupant == 0:
-        recommendations.append(
-            {
-                "icon": "🚨",
-                "message": "Ruangan kosong - Matikan AC untuk menghemat energi.",
-            }
-        )
+        recommendations.append({"icon": "🚨", "message": "The room is empty - Turn off lights and AC to save energy."})
 
-    # Rule 2: Rekomendasikan ventilasi alami jika suhu luar nyaman
-    if (latest_data.outdoor_temperature - latest_data.indoor_temperature) > 3:
-        recommendations.append(
-            {
-                "icon": "🌬️",
-                "message": f"Naikkan suhu AC untuk menghemat energi. Suhu luar: {latest_data.outdoor_temperature}°C.",
-            }
-        )
-
-    # Rule 3: Kurangi intensitas lampu jika okupansi rendah
     if latest_data.occupant < 5:
-        recommendations.append(
-            {
-                "icon": "💡",
-                "message": "Okupansi rendah - Kurangi intensitas lampu hingga 50%.",
-            }
-        )
+        recommendations.append({"icon": "💡", "message": "Low occupancy detected - Consider dimming the lights."})
 
-    # Rule 4: Peringatkan jika beban daya tinggi
     if latest_data.power > 2500:
-        recommendations.append(
-            {
-                "icon": "⚠️",
-                "message": f"Beban daya tinggi ({latest_data.power}W). Pertimbangkan untuk mematikan perangkat non-esensial.",
-            }
-        )
+        recommendations.append({"icon": "⚠️", "message": f"High power consumption detected ({latest_data.power} Watts)."})
 
-    # Rule 5: Peringatkan jika suhu ruangan tidak nyaman
-    if latest_data.indoor_temperature < 18 or latest_data.indoor_temperature > 25:
-        recommendations.append(
-            {
-                "icon": "🌡️",
-                "message": f"Suhu ruangan tidak nyaman ({latest_data.indoor_temperature}°C).",
-            }
-        )
+    if latest_data.indoor_temperature < 18 or latest_data.indoor_temperature > 28:
+        recommendations.append({"icon": "🌡️", "message": f"Room temperature is uncomfortable: {latest_data.indoor_temperature}°C."})
 
-    # Rule 6: Peringatkan jika kelembaban ruangan tidak nyaman
     if latest_data.indoor_humidity < 30 or latest_data.indoor_humidity > 60:
-        recommendations.append(
-            {
-                "icon": "💧",
-                "message": f"Kelembaban ruangan tidak nyaman ({latest_data.indoor_humidity}%).",
-            }
-        )
+        recommendations.append({"icon": "💧", "message": f"Room humidity is out of comfort range: {latest_data.indoor_humidity}%."})
 
     return {
         "timestamp": latest_data.timestamp.strftime("%Y-%m-%d %H:%M"),
         "recommendations": recommendations,
+    }
+
+@router.get("/recommendation-log", status_code=status.HTTP_200_OK)
+async def get_recommendation_logs(page: int = 1, db: Session = Depends(get_db)):
+    limit = 10
+    offset = (page - 1) * limit
+
+    logs = (
+        db.query(RecommendationLog)
+        .order_by(RecommendationLog.timestamp.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+    total_records = db.query(RecommendationLog).count()
+    total_pages = (total_records + limit - 1) // limit
+
+    return {
+        "page": page,
+        "total_pages": total_pages,
+        "data": [
+            {
+                "timestamp": log.timestamp.strftime("%Y-%m-%d %H:%M"),
+                "current_tset": log.current_t_set,
+                "optimal_tset": log.optimal_t_set,
+                "predicted_power": log.predicted_power,
+                "estimated_saving": log.estimated_saving,
+                "recommendation": log.recommendation_text
+            }
+            for log in logs
+        ]
     }

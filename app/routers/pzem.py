@@ -8,6 +8,7 @@ from fastapi.templating import Jinja2Templates
 from ..database import Sessionlocal
 from ..models import Pzem
 from ..service import pzem_sensor
+from ..service.emission import log_emission
 
 templates = Jinja2Templates(directory="app/templates")
 
@@ -34,18 +35,35 @@ class PzemRequest(BaseModel):
 ### Pages ###
 @router.get("/", response_class=HTMLResponse)
 async def pzem(request: Request):
-    return templates.TemplateResponse("pzem.html", {"request": request})
+    return templates.TemplateResponse(request, "pzem.html")
 
 ### Endpoints ###
 @router.post("/create", status_code=status.HTTP_201_CREATED)
 async def create_pzem(pzem_request: PzemRequest, db: Session = Depends(get_db)):
     if not pzem_request:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid request")
-    pzem = Pzem(**pzem_request.dict())
+    pzem = Pzem(**pzem_request.model_dump())
     
     db.add(pzem)
     db.commit()
-    return pzem
+
+    #Log emission from this energy sample (assumes energy in kWh)
+    emission = log_emission()
+
+    return {
+        "pzem": {
+            "id": pzem.id,
+            "timestamp": pzem.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+            "voltage": pzem.voltage,
+            "current": pzem.current,
+            "power": pzem.power,
+            "energy": pzem.energy,
+            "frequency": pzem.frequency,
+            "power_factor": pzem.power_factor
+        },
+        "emission": emission
+    }
+
 
 @router.get("/data_pzem", status_code=status.HTTP_200_OK)
 async def read_pzem_data(page: int = 1, db: Session = Depends(get_db)):

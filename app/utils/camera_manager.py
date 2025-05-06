@@ -13,7 +13,7 @@ class CameraStream:
         with cls._lock:
             if cls._instance is None:
                 cls._instance = super(CameraStream, cls).__new__(cls)
-                cls._instance.camera = cv2.VideoCapture(0)
+                cls._instance.camera = cv2.VideoCapture(1)
                 cls._instance.camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)  # Lebih ringan
                 cls._instance.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)  # Lebih ringan
                 cls._instance.running = True

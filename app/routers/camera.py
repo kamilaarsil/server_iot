@@ -33,14 +33,14 @@ class CameraRequest(BaseModel):
 ### Pages ###
 @router.get("/", response_class=HTMLResponse)
 async def camera(request: Request):
-    return templates.TemplateResponse("camera.html", {"request": request})
+    return templates.TemplateResponse(request, "camera.html")
 
 ### Endpoints ###
 @router.post("/create", status_code=status.HTTP_201_CREATED)
 async def create_camera(camera_request: CameraRequest, db: Session = Depends(get_db)):
     if not camera_request:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid request")
-    camera = Camera(**camera_request.dict())
+    camera = Camera(**camera_request.model_dump())
     
     db.add(camera)
     db.commit()

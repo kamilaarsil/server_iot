@@ -1,0 +1,310 @@
+{% include 'layout.html' %}
+
+<div class="container p-6 mx-auto mt-4 mb-6 max-w-8xl">
+    <h1 class="mb-6 text-4xl font-bold text-left px-6 text-gray-800">
+        Insight
+    </h1>
+
+    <!-- Information Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="p-6 bg-white shadow-lg rounded-3xl">
+            <h2 class="text-xl font-semibold mb-2">Predicted Mean Vote (PMV)</h2>
+            <p class="text-sm">a thermal comfort index defined by ASHRAE Standard 55, which a comfortable PMV range is generally considered to be between -0.5 and +0.5</p>
+            <p class="mt-2">Current Comfort Index : <span id="pmv-info" class="font-semibold">--</span></p>
+        </div>
+        <div class="p-6 bg-white shadow-lg rounded-3xl">
+            <h2 class="text-xl font-semibold mb-2">Carbon Emission</h2>
+            <p class= "text-sm">calculated by multiplying electricity consumption in kilowatt-hours (kWh) by an emission factor of 0.7791 kgCO2e/kWh (Indonesia)</p>
+            <p class="mt-2">Total Emission Today : <span id="emission-info" class="font-semibold">--</span></p>
+        </div>
+    </div>
+
+    <!-- PMV and Emission Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-4">
+        <div>
+            <h3 class="text-2xl font-semibold text-center mb-2 text-gray-800">PMV Chart</h3>
+            <div class="min-h-[400px]">
+                <canvas id="insightPmvChart"></canvas>
+            </div>
+        </div>
+        <div>
+            <h3 class="text-2xl font-semibold text-center mb-2 text-gray-800">Emission Chart</h3>
+            <div class="min-h-[400px]">
+                <canvas id="insightEmissionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommendation Log Table -->
+    <div class="p-6 bg-white rounded-lg shadow-lg">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Recommendation History</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full table-auto border-collapse">
+                <thead>
+                    <tr class="bg-blue-500 text-white">
+                        <th class="px-4 py-2">Timestamp</th>
+                        <th class="px-4 py-2">Current T_set</th>
+                        <th class="px-4 py-2">Optimal T_set</th>
+                        <th class="px-4 py-2">Saving (W)</th>
+                        <th class="px-4 py-2">Recommendation</th>
+                    </tr>
+                </thead>
+                <tbody id="recommendation-log-body" class="text-center text-gray-800 divide-y divide-gray-200">
+                    <!-- JS populates here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="flex justify-center mt-6 space-x-4">
+        <button
+            id="prev-page"
+            class="px-6 py-3 text-sm transition duration-300 bg-gray-300 rounded-lg shadow-md lg:text-lg hover:bg-gray-400"
+        >
+            Previous
+        </button>
+        <span
+            id="page-info"
+            class="px-4 py-3 text-sm font-medium text-gray-700"
+        ></span>
+        <button
+            id="next-page"
+            class="px-6 py-3 text-sm transition duration-300 bg-gray-300 rounded-lg shadow-md lg:text-lg hover:bg-gray-400"
+        >
+            Next
+        </button>
+    </div>
+</div>
+
+<script>
+    let currentPage = 1;
+    let totalPages = 1;
+    let pmvChartInstance = null;
+    let emissionChartInstance = null;
+
+    function fetchInsightData(page) {
+        // PMV
+        $.getJSON(`/pmv/data_pmv?page=${page}`).done(function (response) {
+            totalPages = response.total_pages;
+            const latest = response.data[0];
+            document.getElementById("pmv-info").textContent = `${latest.pmv} (${latest.comfort_status})`;
+
+            const timestamps = response.data.map(d => d.timestamp).reverse();
+            const pmvValues = response.data.map(d => d.pmv).reverse();
+
+            if (!pmvChartInstance) {
+                pmvChartInstance = new Chart(
+                    document.getElementById("insightPmvChart").getContext("2d"),
+                    {
+                        type: "line",
+                        data: {
+                            labels: timestamps,
+                            datasets: [
+                                {
+                                    label: "PMV",
+                                    data: pmvValues,
+                                    borderColor: "rgba(99, 102, 241, 1)",
+                                    backgroundColor: "rgba(99, 102, 241, 0.3)",
+                                    tension: 0.3,
+                                    fill: true,
+                                },
+                            ],
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                        },
+                    }
+                );
+            } else {
+                pmvChartInstance.data.labels = timestamps;
+                pmvChartInstance.data.datasets[0].data = pmvValues;
+                pmvChartInstance.update();
+            }
+        });
+
+        // Emission
+        $.getJSON(`/emission/data_emission?page=${page}`).done(function (response) {
+            const total = response.data.reduce((sum, d) => sum + d.emission, 0).toFixed(3);
+            document.getElementById("emission-info").textContent = `${total} mtCO2e`;
+
+            const timestamps = response.data.map(d => d.timestamp).reverse();
+            const emissions = response.data.map(d => d.emission).reverse();
+
+            if (!emissionChartInstance) {
+                emissionChartInstance = new Chart(
+                    document.getElementById("insightEmissionChart").getContext("2d"),
+                    {
+                        type: "line",
+                        data: {
+                            labels: timestamps,
+                            datasets: [
+                                {
+                                    label: "Emission (mtCO2e)",
+                                    data: emissions,
+                                    borderColor: "rgba(99, 102, 241, 1)",
+                                    backgroundColor: "rgba(99, 102, 241, 0.3)",
+                                    tension: 0.3,
+                                    fill: true,
+                                },
+                            ],
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                        },
+                    }
+                );
+            } else {
+                emissionChartInstance.data.labels = timestamps;
+                emissionChartInstance.data.datasets[0].data = emissions;
+                emissionChartInstance.update();
+            }
+        });
+
+        // Recommendation Log
+        $.getJSON(`/analysis/recommendation-log?page=${page}`).done(function (response) {
+            totalPages = response.total_pages;
+            const rows = response.data
+                .map(
+                    (rec) => `
+                    <tr>
+                        <td class="px-4 py-2">${rec.timestamp}</td>
+                        <td class="px-4 py-2">${rec.current_tset} °C</td>
+                        <td class="px-4 py-2">${rec.optimal_tset} °C</td>
+                        <td class="px-4 py-2">${rec.estimated_saving} W</td>
+                        <td class="px-4 py-2 text-left">${rec.recommendation}</td>
+                    </tr>
+                `
+                )
+                .join("");
+            document.getElementById("recommendation-log-body").innerHTML = rows;
+            document.getElementById("page-info").textContent = `Page ${response.page} of ${response.total_pages}`;
+        });
+    }
+
+    function updateInsightCharts(timestamps, pmvValues, emissions) {
+        if (!pmvChartInstance) {
+            pmvChartInstance = new Chart(
+                document.getElementById("insightPmvChart").getContext("2d"),
+                {
+                    type: "line",
+                    data: {
+                        labels: timestamps,
+                        datasets: [
+                            {
+                                label: "PMV",
+                                data: pmvValues,
+                                borderColor: "rgba(99, 102, 241, 1)",
+                                backgroundColor: "rgba(99, 102, 241, 0.3)",
+                                fill: true,
+                                tension: 0.3,
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: "Timestamp",
+                                },
+                            },
+                            y: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: "PMV",
+                                },
+                                beginAtZero: true,
+                                suggestedMin: -3,
+                                suggestedMax: 3,
+                            },
+                        },
+                    },
+                }
+            );
+        } else {
+            pmvChartInstance.data.labels = timestamps;
+            pmvChartInstance.data.datasets[0].data = pmvValues;
+            pmvChartInstance.update();
+        }
+    
+        if (!emissionChartInstance) {
+            emissionChartInstance = new Chart(
+                document.getElementById("insightEmissionChart").getContext("2d"),
+                {
+                    type: "bar",
+                    data: {
+                        labels: timestamps,
+                        datasets: [
+                            {
+                                label: "Emission (mtCO2e)",
+                                data: emissions,
+                                backgroundColor: "rgba(165, 180, 252, 0.5)",
+                                borderColor: "rgba(99, 102, 241, 1)",
+                                borderWidth: 1,
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: "Timestamp",
+                                },
+                            },
+                            y: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: "Emission (mtCO2e)",
+                                },
+                                beginAtZero: true,
+                            },
+                        },
+                    },
+                }
+            );
+        } else {
+            emissionChartInstance.data.labels = timestamps;
+            emissionChartInstance.data.datasets[0].data = emissions;
+            emissionChartInstance.update();
+        }
+    }    
+
+    $(document).ready(function () {
+        fetchInsightData(currentPage);
+
+        // Memperbarui data dan grafik setiap 10 detik
+        setInterval(() => {
+            fetchData(currentPage);
+        }, 10000);
+
+        $("#prev-page").click(function () {
+            if (currentPage > 1) {
+                currentPage--;
+                fetchInsightData(currentPage);
+            }
+        });
+
+        $("#next-page").click(function () {
+            if (currentPage < totalPages) {
+                currentPage++;
+                fetchInsightData(currentPage);
+            }
+        });
+
+        $("#page-info").text(
+                    `Page ${response.page} of ${response.total_pages}`
+                );
+    });
+</script>
+
+

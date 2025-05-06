@@ -30,14 +30,14 @@ class OpenWeatherRequest(BaseModel):
 ### Pages ###
 @router.get("/", response_class=HTMLResponse)
 async def openweather(request: Request):
-    return templates.TemplateResponse("openweather.html", {"request": request})
+    return templates.TemplateResponse(request, "openweather.html")
 
 ### Endpoints ###
 @router.post("/create", status_code=status.HTTP_201_CREATED)
 async def create_openweather(openweather_request: OpenWeatherRequest, db: Session = Depends(get_db)):
     if not openweather_request:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid request")
-    openweather = OpenWeather(**openweather_request.dict())
+    openweather = OpenWeather(**openweather_request.model_dump())
     
     db.add(openweather)
     db.commit()

@@ -7,14 +7,14 @@ import httpx
 from ..utils.camera_manager import camera_stream
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 warnings.filterwarnings("ignore", category=UserWarning, module="torchvision.models._utils")
 
 MODEL_PATH = "models/retinanet_resnet50_fpn_coco-eeacb38b.pth"
 MIN_PROBABILITY = 15
 
-api_url = f"http://{os.environ['IP_SERVER']}:8000/camera/create"
+api_url = f"http://{os.environ.get('IP_SERVER')}:8000/camera/create"
 
 execution_path = os.getcwd()
 

@@ -1,4 +1,4 @@
-{% include 'layout.html' %}
+                                                                     {% include 'layout.html' %}
 
 <div class="container flex-col justify-center p-7 mx-auto mt-2">
     <!-- Header Section -->
@@ -9,8 +9,79 @@
         </h1>
     </div>
 
+    <!-- Insight Stats Overview Section -->
+    <div class="flex flex-col lg:flex-row mx-auto mb-6 space-y-4 lg:space-y-0 lg:space-x-4">
+        <!--T_set Input Card-->
+        <div class="p-6 transition-all duration-300 transform rounded-3xl shadow-[inset_2px_2px_5px_rgba(255,255,255,0.5),_inset_-2px_-2px_5px_rgba(0,0,0,0.1),_5px_5px_15px_rgba(0,0,0,0.12)] 
+            bg-gradient-to-br from-blue-300 via-blue-400 to-blue-500 text-white hover:shadow-[inset_1px_1px_3px_rgba(255,255,255,0.6),_inset_-1px_-1px_3px_rgba(0,0,0,0.08),_7px_7px_18px_rgba(0,0,0,0.15)] 
+            hover:scale-[1.03] w-full">
+            <div class="flex flex-col justify-center h-full w-full items-start">
+                <h3 class="text-xl font-semibold">
+                    AC Temperature Setting 
+                </h3>               
+                <div class="flex items-center justify-center mt-2 space-x-2 h-full">
+                    <input id="tset-input" type="number" min="17" max="21" value="none" class="px-4 py-2 p-4 rounded-3xl text-center text-black bg-white" />
+                    <button onclick="submitTSet()"
+                            class="border border-white text-white font-semibold px-4 py-2 rounded-full hover:bg-gray-100 transition">
+                    Submit
+                    </button>
+                </div>
+                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]">
+                    <svg
+                        class="w-8 h-8 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 3v10m0 0a4 4 0 100 8 4 4 0 000-8z"
+                        ></path>
+                    </svg>
+                </div> 
+            </div>
+        </div>         
+
+        <!--PMV Stat Overview-->
+        <div class="p-6 transition-all duration-300 transform rounded-3xl shadow-[inset_2px_2px_5px_rgba(255,255,255,0.5),_inset_-2px_-2px_5px_rgba(0,0,0,0.1),_5px_5px_15px_rgba(0,0,0,0.12)] 
+            bg-gradient-to-br from-purple-300 via-purple-400 to-purple-500 text-gray-800 hover:shadow-[inset_1px_1px_3px_rgba(255,255,255,0.6),_inset_-1px_-1px_3px_rgba(0,0,0,0.08),_7px_7px_18px_rgba(0,0,0,0.15)] 
+            hover:scale-[1.03] w-full">
+            <div>
+                <h3 class="text-xl font-semibold text-white">PMV</h3>                
+                <p class="text-white text-opacity-80" id="pmv-value">Loading...</p>
+                <p class="text-white" id="pmv-status">Comfort Status: --</p>
+            </div>   
+            <div class="mt-4">
+                <canvas id="pmvChart" class="w-full h-24"></canvas>
+            </div>
+        </div>
+
+        <!--Emission Stat Overview-->
+        <div class="p-6 transition-all duration-300 transform rounded-3xl shadow-[inset_2px_2px_5px_rgba(255,255,255,0.5),_inset_-2px_-2px_5px_rgba(0,0,0,0.1),_5px_5px_15px_rgba(0,0,0,0.12)] 
+            bg-gradient-to-br from-indigo-300 via-indigo-400 to-indigo-500 text-gray-800 hover:shadow-[inset_1px_1px_3px_rgba(255,255,255,0.6),_inset_-1px_-1px_3px_rgba(0,0,0,0.08),_7px_7px_18px_rgba(0,0,0,0.15)] 
+            hover:scale-[1.03] w-full">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-semibold text-white">Emission</h3>                   
+                    <p class="text-white text-opacity-80">
+                        Real-Time: <span id="emission-realtime">--</span> mtCO2e
+                    </p>
+                    <p class="text-white text-opacity-80">
+                        Total Today: <span id="emission-total">--</span> mtCO2e
+                    </p>
+                </div>
+            </div>
+            <div class="mt-4">
+                <canvas id="emissionChart" class="w-full h-24"></canvas>
+            </div>
+        </div>
+    </div>
+
     <!-- Recommendations Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-6">
         <!-- Energy Saving Recommendations -->
         <div class="p-6 transition-all duration-300 transform rounded-3xl shadow-[inset_2px_2px_5px_rgba(255,255,255,0.5),_inset_-2px_-2px_5px_rgba(0,0,0,0.1),_5px_5px_15px_rgba(0,0,0,0.12)] 
             bg-gradient-to-br from-teal-300 via-teal-400 to-teal-500 text-white hover:shadow-[inset_1px_1px_3px_rgba(255,255,255,0.6),_inset_-1px_-1px_3px_rgba(0,0,0,0.08),_7px_7px_18px_rgba(0,0,0,0.15)] 
@@ -24,7 +95,7 @@
                               d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
                         </path>
                     </svg>
-                    <span>Energy Saving Recommendations</span>
+                    <span>Rule-Based Recommendations</span>
                 </h3>
                 <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]">
                     <span>Real-Time</span>
@@ -50,7 +121,7 @@
             </div>
         </div>   
 
-        <!-- LSTM Predictive Insights -->
+        <!-- ML Predictive Insights -->
         <div
             class="p-6 transition-all duration-300 transform rounded-3xl shadow-[inset_2px_2px_5px_rgba(255,255,255,0.5),_inset_-2px_-2px_5px_rgba(0,0,0,0.1),_5px_5px_15px_rgba(0,0,0,0.12)] 
             bg-gradient-to-br from-orange-300 via-orange-400 to-orange-500 text-white hover:shadow-[inset_1px_1px_3px_rgba(255,255,255,0.6),_inset_-1px_-1px_3px_rgba(0,0,0,0.08),_7px_7px_18px_rgba(0,0,0,0.15)] 
@@ -72,32 +143,34 @@
                             d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
                         ></path>
                     </svg>
-                    AI Predictive Insights (LSTM)
+                    AI Recommendation
                 </h3>
                 <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]">
                     <span class="text-white"> Prediction</span>
                 </div>
             </div>
             <div class="space-y-4 text-white" id="modelRecommendationCard">
-                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]" id="optimalTsetInfo">
-                    📊 Optimal T_set: <span class="font-semibold">-</span>
+                <div class="p-4 rounded-full bg-[rgba(255,255,255,0.1)]" id="currentTsetInfo">
+                      Current T_set: <span class="font-semibold">-</span>
                 </div>
-                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]" id="predictedPowerInfo">
-                    ⚡ Predicted Power: <span class="font-semibold">-</span>
+                <div class="p-4 rounded-full bg-[rgba(255,255,255,0.1)]" id="optimalTsetInfo">
+                      Optimal T_set: <span class="font-semibold">-</span>
                 </div>
-                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]" id="savingInfo">
-                    💡 Estimated Saving: <span class="font-semibold">-</span>
+                <div class="p-4 rounded-full bg-[rgba(255,255,255,0.1)]" id="predictedPowerInfo">
+                      Predicted Power: <span class="font-semibold">-</span>
                 </div>
-                <div class="p-3 rounded-full bg-[rgba(255,255,255,0.1)]" id="recommendationText">
-                    📢 Recommendation: <span class="font-semibold">-</span>
+                <div class="p-4 rounded-full bg-[rgba(255,255,255,0.1)]" id="savingInfo">
+                      Estimated Saving: <span class="font-semibold">-</span>
                 </div>
-                <canvas id="lstmChart" class="w-full mt-4 h-28"></canvas>
+                <div class="p-6 rounded-full bg-[rgba(255,255,255,0.1)]" id="recommendationText">
+                      Recommendation: <span class="font-semibold">-</span>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Stats Overview Section -->
-    <div class="grid grid-cols-1 gap-6 mb-12 md:grid-cols-2 lg:grid-cols-4">
+    <div class="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
         <!-- Weather Stats -->
         <div
             class="p-6 transition-all duration-300 transform rounded-3xl shadow-[inset_2px_2px_5px_rgba(255,255,255,0.5),_inset_-2px_-2px_5px_rgba(0,0,0,0.1),_5px_5px_15px_rgba(0,0,0,0.12)] 
@@ -400,6 +473,126 @@
 </div>
 
 <script>
+    function submitTSet() {
+        const tset = parseInt(document.getElementById("tset-input").value);
+        if (isNaN(tset) || tset < 17 || tset > 21) {
+            alert("Please input a temperature between 17–21°C");
+            return;
+        }
+    
+        fetch("/tset/set", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tset: parseInt(tset) }),
+        })
+            .then((res) => {
+                if (!res.ok) throw new Error("Failed to update T_set");
+                return res.json();
+            })
+            .then(() => {
+                alert("T_set updated successfully!");
+                fetchModelRecommendation();  // Refresh recommendation
+            })
+            .catch((error) => {
+                alert("Submission failed. Try again.");
+                console.error(error);
+            });
+    }
+    
+    function fetchPMVData() {
+        fetch("/pmv/data_pmv")
+            .then((response) => response.json())
+            .then((data) => {
+                const latest = data.data[0];
+                document.getElementById(
+                    "pmv-value"
+                ).textContent = `${latest.pmv}`;
+                document.getElementById("pmv-status").textContent = `Comfort Status: ${latest.comfort_status}`;
+    
+                const pmvCtxs = document
+                    .getElementById("pmvChart")
+                    .getContext("2d");
+                if (window.pmvCharts) window.pmvCharts.destroy();
+                window.pmvCharts = new Chart(pmvCtxs, {
+                    type: "line",
+                    data: {
+                        labels: data.data
+                            .slice(0, 10)
+                            .reverse()
+                            .map(d => d.timestamp.split(" ")[1]),
+                        datasets: [
+                            {
+                                label: "PMV Value",
+                                data: data.data.slice(0, 10).reverse().map(d => d.pmv),
+                                borderColor: "rgba(255, 255, 255, 0.8)",
+                                backgroundColor: "rgba(255, 255, 255, 0.2)",
+                                tension: 0.3,
+                            }
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { display: false },
+                            y: { display: false },
+                        },
+                    },
+                });
+            });
+    }
+
+    function fetchEmissionData() {
+        fetch("/emission/status")
+            .then((response) => response.json())
+            .then((data) => {
+                document.getElementById("emission-realtime").textContent =
+                    `${data.real_time_emission}`;
+                document.getElementById("emission-total").textContent =
+                    `${data.total_emission}`;
+        });
+
+    
+        fetch("/emission/data_emission")
+            .then((response) => response.json())
+            .then((data) => {
+                const emissionCtxs = document
+                    .getElementById("emissionChart")
+                    .getContext("2d");
+                if (window.emissionCharts) window.emissionCharts.destroy();
+                
+                window.emissionCharts = new Chart(emissionCtxs, {
+                    type: "line",
+                    data: {
+                        labels: data.data
+                            .slice(0, 10)
+                            .reverse()
+                            .map((d) => d.timestamp.split(" ")[1]),
+                        datasets: [{
+                            label: "Emission (mtCO2e)",
+                            data: data.data
+                                .slice(0, 10)
+                                .reverse()
+                                .map((d) => d.emission),
+                                borderColor: "rgba(255, 255, 255, 0.8)",
+                                backgroundColor: "rgba(255, 255, 255, 0.2)",
+                                tension: 0.3,
+                        }],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { display: false },
+                            y: { display: false },
+                        },
+                    },
+                });
+            });
+    }    
+    
     function fetchModelRecommendation() {
         fetch("/analysis/recommendation-model")
             .then((response) => {
@@ -409,17 +602,20 @@
                 return response.json();
             })
             .then((data) => {
+                document.getElementById("currentTsetInfo").innerHTML =
+                    ` Current T_set: <span class="font-semibold">${data.current_T_set}°C</span>`;
+
                 document.getElementById("optimalTsetInfo").innerHTML =
-                    `📊 Optimal T_set: <span class="font-semibold">${data.optimal_T_set}°C</span>`;
+                    ` Optimal T_set: <span class="font-semibold">${data.optimal_T_set}°C</span>`;
     
                 document.getElementById("predictedPowerInfo").innerHTML =
-                    `⚡ Predicted Power: <span class="font-semibold">${data.predicted_power} W</span>`;
+                    ` Predicted Power: <span class="font-semibold">${data.predicted_power} W</span>`;
     
                 document.getElementById("savingInfo").innerHTML =
-                    `💡 Estimated Saving: <span class="font-semibold">${data.estimated_saving} W</span>`;
+                    ` Estimated Saving: <span class="font-semibold">${data.estimated_saving} W</span>`;
     
                 document.getElementById("recommendationText").innerHTML =
-                    `📢 Recommendation: <span class="font-semibold">${data.recommendation}</span>`;
+                    ` Recommendation: <span class="font-semibold">${data.recommendation}</span>`;
             })
             .catch((error) => {
                 console.error("Error fetching model recommendation:", error);
@@ -639,6 +835,8 @@
         fetchOccupancyData();
         fetchRecommendations();
         fetchModelRecommendation();
+        fetchPMVData();            
+        fetchEmissionData();
     }
 
     $(document).ready(function () {
