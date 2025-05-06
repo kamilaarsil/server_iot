@@ -8,7 +8,9 @@ def update_tset(tset: int, db: Session):
 
     latest = db.query(DataAnalysis).order_by(DataAnalysis.timestamp.desc()).first()
     if not latest:
-        raise ValueError("No DataAnalysis row exists to update.")
+        db.add(DataAnalysis(ac_temperature=tset, timestamp=datetime.now()))
+        db.commit()
+        return tset
 
     latest.ac_temperature = tset
     latest.timestamp = datetime.now()
@@ -17,4 +19,4 @@ def update_tset(tset: int, db: Session):
 
 def get_last_tset(db: Session):
     latest = db.query(DataAnalysis).order_by(DataAnalysis.timestamp.desc()).first()
-    return latest.ac_temperature if latest and latest.ac_temperature else 24
+    return latest.ac_temperature if latest and latest.ac_temperature else 21

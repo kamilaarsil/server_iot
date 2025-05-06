@@ -8,7 +8,6 @@ from fastapi.templating import Jinja2Templates
 from ..database import Sessionlocal
 from ..models import Pzem
 from ..service import pzem_sensor
-from ..service.emission import log_emission
 
 templates = Jinja2Templates(directory="app/templates")
 
@@ -47,21 +46,15 @@ async def create_pzem(pzem_request: PzemRequest, db: Session = Depends(get_db)):
     db.add(pzem)
     db.commit()
 
-    #Log emission from this energy sample (assumes energy in kWh)
-    emission = log_emission()
-
     return {
-        "pzem": {
-            "id": pzem.id,
-            "timestamp": pzem.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-            "voltage": pzem.voltage,
-            "current": pzem.current,
-            "power": pzem.power,
-            "energy": pzem.energy,
-            "frequency": pzem.frequency,
-            "power_factor": pzem.power_factor
-        },
-        "emission": emission
+        "id": pzem.id,
+        "timestamp": pzem.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+        "voltage": pzem.voltage,
+        "current": pzem.current,
+        "power": pzem.power,
+        "energy": pzem.energy,
+        "frequency": pzem.frequency,
+        "power_factor": pzem.power_factor
     }
 
 

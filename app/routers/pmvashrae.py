@@ -57,9 +57,9 @@ async def read_pmv_data(page: int = 1, db: Session = Depends(get_db)):
 
 ### 📈 Real-time PMV Result from Latest AHT10 ###
 @router.get("/status", status_code=status.HTTP_200_OK)
-async def get_pmv_status(db: Session = Depends(get_db)):
+async def get_pmv_status():
     try:
-        result = pmv.calculate_and_log_pmv(db)
+        result = pmv.calculate_and_log_pmv()
         return result
     except Exception as e:
         return {

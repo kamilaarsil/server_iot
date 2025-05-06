@@ -7,8 +7,6 @@ from fastapi.responses import HTMLResponse
 
 from ..database import Sessionlocal
 from ..models import AHT10
-from ..service.pmv import calculate_and_log_pmv
-
 
 templates = Jinja2Templates(directory="app/templates")
 
@@ -43,19 +41,9 @@ async def create_aht10(aht10_request: AHT10Request, db: Session = Depends(get_db
     db.add(aht10)
     db.commit()
 
-    # Automatically calculate and log PMV
-    try:
-        pmv_result = calculate_and_log_pmv(db)
-    except Exception as e:
-        print(f"PMV logging failed: {e}")
-        pmv_result = {"error": "PMV calculation failed"}
-
     return {
-        "aht10": {
-            "temperature": aht10.temperature,
-            "humidity": aht10.humidity
-        },
-        "pmv_result": pmv_result
+        "temperature": aht10.temperature,
+        "humidity": aht10.humidity
     }
 
 @router.get("/data_aht10", status_code=status.HTTP_200_OK)

@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 from pythermalcomfort.models import pmv_ppd_ashrae
 from fastapi import Depends
-from ..models import AHT10, PMVLog
+from ..models import DataAnalysis, PMVLog
 from ..database import Sessionlocal
 
 def get_db():
@@ -15,17 +15,17 @@ def get_db():
 def calculate_and_log_pmv(db: Session = Depends(get_db)):
     try:
         db = next(get_db())
-        latest = db.query(AHT10).order_by(AHT10.timestamp.desc()).first()
+        latest = db.query(DataAnalysis).order_by(DataAnalysis.timestamp.desc()).first()
 
         met = 1.0
         clo = 0.61
         air_speed = 0.1
-        tr = latest.temperature
+        tr = latest.indoor_temperature
 
         result = pmv_ppd_ashrae(
-            tdb=latest.temperature,
+            tdb=latest.indoor_temperature,
             tr=tr,
-            rh=latest.humidity,
+            rh=latest.indoor_humidity,
             vr=air_speed,
             met=met,
             clo=clo,
@@ -43,8 +43,8 @@ def calculate_and_log_pmv(db: Session = Depends(get_db)):
 
         log = PMVLog(
             timestamp=datetime.now(),
-            t_indoor=latest.temperature,
-            h_indoor=latest.humidity,
+            t_indoor=latest.indoor_temperature,
+            h_indoor=latest.indoor_humidity,
             pmv=pmv_value,
             ppd=ppd_value
         )
